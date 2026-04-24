@@ -592,11 +592,7 @@ export default function SnapshotsPage() {
       <Stack flex={1}>
         {hasPageFrameFeature ? (
           <Fragment>
-            <SnapshotHeaderContent
-              data={data}
-              isSoloView={isSoloView}
-              onToggleView={handleToggleView}
-            />
+            <SnapshotHeaderContent data={data} />
             <TopBar.Slot name="actions">
               <SnapshotHeaderActions
                 data={data}
@@ -607,11 +603,7 @@ export default function SnapshotsPage() {
           </Fragment>
         ) : (
           <Layout.Header paddingTop="0" paddingBottom="0" unified>
-            <SnapshotHeaderContent
-              data={data}
-              isSoloView={isSoloView}
-              onToggleView={handleToggleView}
-            />
+            <SnapshotHeaderContent data={data} />
             <Layout.HeaderActions style={{alignSelf: 'center'}}>
               <SnapshotHeaderActions
                 data={data}
