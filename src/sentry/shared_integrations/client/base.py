@@ -125,9 +125,12 @@ class BaseApiClient:
             if retry_after := resp.headers.get("Retry-After"):
                 log_params["retry_after"] = retry_after
 
-        log_params.update(getattr(self, "logging_context", None) or {})
+        logging_context = getattr(self, "logging_context", None) or {}
+        log_params.update(logging_context)
         if "organization_id" not in log_params and "org_id" in log_params:
             log_params["organization_id"] = log_params["org_id"]
+        if "organization_id" in log_params:
+            log_params["organization_id"] = str(log_params["organization_id"])
         log_level = self.logger.warning if error else self.logger.info
         log_level("%s.http_response", self.integration_type, extra=log_params)
 
