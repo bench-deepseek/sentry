@@ -4082,3 +4082,11 @@ register(
     type=Bool,
     flags=FLAG_NOSTORE,
 )
+
+# Controls strict validation logic in bitbucket installation webhook endpoint.
+register(
+    "integrations.bitbucket.installation-verification.strict",
+    default=False,
+    type=Bool,
+    flags=FLAG_MODIFIABLE_BOOL | FLAG_AUTOMATOR_MODIFIABLE,
+)
