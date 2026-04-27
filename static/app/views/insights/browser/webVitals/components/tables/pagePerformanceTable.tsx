@@ -3,9 +3,9 @@ import styled from '@emotion/styled';
 
 import {Button, ButtonBar} from '@sentry/scraps/button';
 import {ExternalLink, Link} from '@sentry/scraps/link';
+import {Pagination} from '@sentry/scraps/pagination';
 import {Tooltip} from '@sentry/scraps/tooltip';
 
-import {Pagination} from 'sentry/components/pagination';
 import {SearchBar} from 'sentry/components/searchBar';
 import type {
   GridColumnHeader,

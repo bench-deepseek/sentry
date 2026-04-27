@@ -1,8 +1,9 @@
 import {Fragment} from 'react';
 import styled from '@emotion/styled';
 
+import {Pagination} from '@sentry/scraps/pagination';
+
 import {EmptyMessage} from 'sentry/components/emptyMessage';
-import {Pagination} from 'sentry/components/pagination';
 import type {
   GridColumnOrder,
   GridColumnSortBy,

@@ -2,9 +2,9 @@ import {Fragment} from 'react';
 import {useTheme} from '@emotion/react';
 import styled from '@emotion/styled';
 
+import {Pagination} from '@sentry/scraps/pagination';
 import {Tooltip} from '@sentry/scraps/tooltip';
 
-import {Pagination} from 'sentry/components/pagination';
 import type {
   GridColumn,
   GridColumnHeader,

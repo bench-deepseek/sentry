@@ -1,7 +1,8 @@
 import {Fragment, memo, useCallback, useMemo} from 'react';
 
+import {Pagination} from '@sentry/scraps/pagination';
+
 import {usePageFilters} from 'sentry/components/pageFilters/usePageFilters';
-import {Pagination} from 'sentry/components/pagination';
 import {
   COL_WIDTH_UNDEFINED,
   GridEditable,

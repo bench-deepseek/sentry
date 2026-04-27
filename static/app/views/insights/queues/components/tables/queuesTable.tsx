@@ -6,9 +6,9 @@ import type {Location} from 'history';
 import * as qs from 'query-string';
 
 import {Link} from '@sentry/scraps/link';
+import type {CursorHandler} from '@sentry/scraps/pagination';
+import {Pagination} from '@sentry/scraps/pagination';
 
-import type {CursorHandler} from 'sentry/components/pagination';
-import {Pagination} from 'sentry/components/pagination';
 import {
   COL_WIDTH_UNDEFINED,
   GridEditable,

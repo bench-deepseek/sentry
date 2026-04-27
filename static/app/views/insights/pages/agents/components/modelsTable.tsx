@@ -2,10 +2,10 @@ import {Fragment, memo, useCallback, useMemo} from 'react';
 import styled from '@emotion/styled';
 
 import {Flex} from '@sentry/scraps/layout';
+import {Pagination} from '@sentry/scraps/pagination';
 
 import {Count} from 'sentry/components/count';
 import {usePageFilters} from 'sentry/components/pageFilters/usePageFilters';
-import {Pagination} from 'sentry/components/pagination';
 import {
   COL_WIDTH_UNDEFINED,
   GridEditable,
