@@ -21,6 +21,7 @@ import {
   addSuccessMessage,
 } from 'sentry/actionCreators/indicator';
 import {openModal} from 'sentry/actionCreators/modal';
+import type {ApiResult} from 'sentry/api';
 import {AvatarChooser} from 'sentry/components/avatarChooser';
 import {Confirm} from 'sentry/components/confirm';
 import {EmptyMessage} from 'sentry/components/emptyMessage';
@@ -299,6 +300,7 @@ export default function SentryApplicationDetails() {
   const organization = useOrganization();
   const routes = useRoutes();
   const hasPageFrame = useHasPageFrameFeature();
+  const isEditingApp = !!appSlug;
 
   const queryClient = useQueryClient();
 
@@ -312,19 +314,37 @@ export default function SentryApplicationDetails() {
     refetch,
   } = useApiQuery<SentryApp>(SENTRY_APP_QUERY_KEY, {
     staleTime: 30000,
-    enabled: !!appSlug,
+    enabled: isEditingApp,
+    placeholderData: () => {
+      if (!appSlug) {
+        return undefined;
+      }
+
+      // eslint-disable-next-line @sentry/no-query-data-type-parameters
+      const listData = queryClient.getQueryData<ApiResult<SentryApp[]>>([
+        getApiUrl('/organizations/$organizationIdOrSlug/sentry-apps/', {
+          path: {organizationIdOrSlug: organization.slug},
+        }),
+      ]);
+
+      if (listData) {
+        const found = listData[0].find(item => item.slug === appSlug);
+        return found ? [found, listData[1], listData[2]] : undefined;
+      }
+
+      return undefined;
+    },
   });
   const {data: tokens = []} = useApiQuery<InternalAppApiToken[]>(
     SENTRY_APP_API_TOKENS_QUERY_KEY,
     {
       staleTime: 30000,
-      enabled: !!appSlug,
+      enabled: isEditingApp,
     }
   );
 
   const [newTokens, setNewTokens] = useState<NewInternalAppApiToken[]>([]);
 
-  const isEditingApp = !!appSlug;
   const hasTokenAccess = organization.access.includes('org:write');
 
   const isInternal = app
