@@ -309,6 +309,8 @@ function SentryApplicationForm({
 }: SentryApplicationFormProps) {
   const [scopeErrors, setScopeErrors] = useState<string[]>([]);
   const [eventErrors, setEventErrors] = useState<string[]>([]);
+  const clientId = app?.clientId ?? '';
+  const clientSecret = app?.clientSecret ?? '';
 
   const defaultValues = useMemo(
     () => getFormDefaultValues({app, isInternalApp, organizationSlug}),
@@ -626,19 +628,18 @@ function SentryApplicationForm({
           <PanelHeader>{t('Credentials')}</PanelHeader>
           <PanelBody>
             {app.status !== 'internal' && (
-              <FormField name="clientId" label="Client ID" value={app.clientId}>
-                {({value, id}: any) => <TextCopyInput id={id}>{value}</TextCopyInput>}
+              <FormField name="clientId" label="Client ID">
+                {({id}: any) => <TextCopyInput id={id}>{clientId}</TextCopyInput>}
               </FormField>
             )}
             <FormField
               name="clientSecret"
               label="Client Secret"
-              value={app.clientSecret}
               help={t(`Your secret is only available briefly after integration creation. Make
                 sure to save this value!`)}
             >
-              {({value, id}: any) =>
-                value ? (
+              {({id}: any) =>
+                clientSecret ? (
                   <Tooltip
                     disabled={showAuthInfo}
                     position="right"
@@ -647,7 +648,7 @@ function SentryApplicationForm({
                       'Only Manager or Owner can view these credentials, or the permissions for this integration exceed those of your role.'
                     )}
                   >
-                    <TextCopyInput id={id}>{value}</TextCopyInput>
+                    <TextCopyInput id={id}>{clientSecret}</TextCopyInput>
                   </Tooltip>
                 ) : (
                   <ClientSecret>
