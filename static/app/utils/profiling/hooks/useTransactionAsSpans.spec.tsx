@@ -13,7 +13,7 @@ describe('useTransaction', () => {
     MockApiClient.clearMockResponses();
   });
 
-  it('does not fetch when transactionEventId is missing', () => {
+  it('does not fetch when transactionEventId and transactionSpanId are missing', () => {
     const request = MockApiClient.addMockResponse({
       url: `/organizations/${ORG_SLUG}/events/`,
       body: {data: [], meta: {fields: {}}},
@@ -139,6 +139,61 @@ describe('useTransaction', () => {
     const call = request.mock.calls[0];
     const query = call![1].query;
     expect(query.query).toContain('transaction.event_id:txn-event-id');
+    expect(query.query).toContain('trace:trace-xyz');
+    expect(query.field).toEqual(expect.arrayContaining(['span_id', 'is_transaction']));
+    expect(query.project).toEqual(['42']);
+  });
+
+  it('filters by transactionSpanId and traceId in the query', async () => {
+    const request = MockApiClient.addMockResponse({
+      url: `/organizations/${ORG_SLUG}/events/`,
+      body: {meta: {fields: {}}, data: []},
+    });
+
+    renderHookWithProviders(() =>
+      useTransactionAsSpans({
+        projectIds: [42],
+        transactionSpanId: 'txn-span-id',
+        traceId: 'trace-xyz',
+        start: 1_700_000_000,
+        end: 1_700_000_060,
+        enabled: true,
+      })
+    );
+
+    await waitFor(() => expect(request).toHaveBeenCalled());
+
+    const call = request.mock.calls[0];
+    const query = call![1].query;
+    expect(query.query).toContain('transaction.span_id:txn-span-id');
+    expect(query.query).toContain('trace:trace-xyz');
+    expect(query.field).toEqual(expect.arrayContaining(['span_id', 'is_transaction']));
+    expect(query.project).toEqual(['42']);
+  });
+
+  it('filters by transactionSpanId if both transaction ID types are given', async () => {
+    const request = MockApiClient.addMockResponse({
+      url: `/organizations/${ORG_SLUG}/events/`,
+      body: {meta: {fields: {}}, data: []},
+    });
+
+    renderHookWithProviders(() =>
+      useTransactionAsSpans({
+        projectIds: [42],
+        transactionEventId: 'txn-event-id',
+        transactionSpanId: 'txn-span-id',
+        traceId: 'trace-xyz',
+        start: 1_700_000_000,
+        end: 1_700_000_060,
+        enabled: true,
+      })
+    );
+
+    await waitFor(() => expect(request).toHaveBeenCalled());
+
+    const call = request.mock.calls[0];
+    const query = call![1].query;
+    expect(query.query).toContain('transaction.span_id:txn-span-id');
     expect(query.query).toContain('trace:trace-xyz');
     expect(query.field).toEqual(expect.arrayContaining(['span_id', 'is_transaction']));
     expect(query.project).toEqual(['42']);
