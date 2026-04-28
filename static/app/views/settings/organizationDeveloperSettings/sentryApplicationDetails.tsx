@@ -331,7 +331,7 @@ export default function SentryApplicationDetails() {
     ? app.status === 'internal'
     : location.pathname.endsWith('new-internal/');
 
-  const showAuthInfo = () => !(app?.clientSecret?.[0] === '*');
+  const showAuthInfo = app?.clientSecret?.[0] !== '*';
 
   const headerTitle = app
     ? isInternal
@@ -484,31 +484,6 @@ export default function SentryApplicationDetails() {
       avatars.push(avatar as SentryAppAvatar);
       setApiQueryData(queryClient, SENTRY_APP_QUERY_KEY, {...app, avatars});
     }
-  };
-
-  const getAvatarChooser = (isColor: boolean) => {
-    if (!app) {
-      return null;
-    }
-
-    const avatarStyle = isColor ? 'color' : 'simple';
-    const styleProps = AVATAR_STYLES[avatarStyle];
-
-    return (
-      <AvatarChooser
-        endpoint={`/sentry-apps/${app.slug}/avatar/`}
-        supportedTypes={['default', 'upload']}
-        type={isColor ? 'sentryAppColor' : 'sentryAppSimple'}
-        model={app}
-        onSave={addAvatar}
-        title={isColor ? t('Logo') : t('Small Icon')}
-        help={styleProps.help.concat(isInternal ? '' : t(' Required for publishing.'))}
-        defaultChoice={{
-          label: styleProps.label,
-          description: styleProps.description,
-        }}
-      />
-    );
   };
 
   const [scopeErrors, setScopeErrors] = useState<string[]>([]);
@@ -804,9 +779,50 @@ export default function SentryApplicationDetails() {
             </form.AppField>
           </form.FieldGroup>
 
-          {getAvatarChooser(true)}
-          {getAvatarChooser(false)}
+          {app && (
+            <Fragment>
+              <AvatarChooser
+                endpoint={`/sentry-apps/${app.slug}/avatar/`}
+                supportedTypes={['default', 'upload']}
+                type="sentryAppColor"
+                model={app}
+                onSave={addAvatar}
+                title={t('Logo')}
+                help={AVATAR_STYLES.color.help.concat(
+                  isInternal ? '' : t(' Required for publishing.')
+                )}
+                defaultChoice={{
+                  label: AVATAR_STYLES.color.label,
+                  description: AVATAR_STYLES.color.description,
+                }}
+              />
+              <AvatarChooser
+                endpoint={`/sentry-apps/${app.slug}/avatar/`}
+                supportedTypes={['default', 'upload']}
+                type="sentryAppSimple"
+                model={app}
+                onSave={addAvatar}
+                title={t('Small Icon')}
+                help={AVATAR_STYLES.simple.help.concat(
+                  isInternal ? '' : t(' Required for publishing.')
+                )}
+                defaultChoice={{
+                  label: AVATAR_STYLES.simple.label,
+                  description: AVATAR_STYLES.simple.description,
+                }}
+              />
+            </Fragment>
+          )}
 
+          {scopeErrors.length > 0 && (
+            <Alert.Container>
+              <Alert variant="danger">
+                {scopeErrors.map((error, index) => (
+                  <div key={`${index}-${error}`}>{error}</div>
+                ))}
+              </Alert>
+            </Alert.Container>
+          )}
           <PermissionsObserver
             webhookDisabled={webhookDisabled}
             appPublished={app ? app.status === 'published' : false}
@@ -821,9 +837,16 @@ export default function SentryApplicationDetails() {
               setEventErrors([]);
               form.setFieldValue('events', events);
             }}
-            scopeErrors={scopeErrors}
-            eventErrors={eventErrors}
           />
+          {eventErrors.length > 0 && (
+            <Alert.Container>
+              <Alert variant="danger">
+                {eventErrors.map((error, index) => (
+                  <div key={`${index}-${error}`}>{error}</div>
+                ))}
+              </Alert>
+            </Alert.Container>
+          )}
 
           {app?.status === 'internal' && (
             <PanelTable
@@ -870,7 +893,7 @@ export default function SentryApplicationDetails() {
                   {({id}: any) =>
                     app.clientSecret ? (
                       <Tooltip
-                        disabled={showAuthInfo()}
+                        disabled={showAuthInfo}
                         position="right"
                         containerDisplayMode="inline"
                         title={t(

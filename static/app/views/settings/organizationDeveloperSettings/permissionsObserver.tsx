@@ -28,10 +28,8 @@ type Props = DefaultProps & {
   events: WebhookEvent[];
   newApp: boolean;
   scopes: Scope[];
-  eventErrors?: string[];
   onEventsChange?: (events: WebhookEvent[]) => void;
   onScopesChange?: (scopes: Scope[]) => void;
-  scopeErrors?: string[];
 };
 
 type State = {
@@ -111,22 +109,6 @@ export class PermissionsObserver extends Component<Props, State> {
     this.props.onEventsChange?.(events);
   };
 
-  renderValidationErrors(errors?: string[]) {
-    if (!errors?.length) {
-      return null;
-    }
-
-    return (
-      <Alert.Container>
-        <Alert variant="danger">
-          {errors.map((error, index) => (
-            <div key={`${index}-${error}`}>{error}</div>
-          ))}
-        </Alert>
-      </Alert.Container>
-    );
-  }
-
   renderCallout() {
     const {elevating} = this.state;
 
@@ -159,7 +141,6 @@ export class PermissionsObserver extends Component<Props, State> {
               onChange={this.onPermissionChange}
               appPublished={this.props.appPublished}
             />
-            {this.renderValidationErrors(this.props.scopeErrors)}
             {this.renderCallout()}
           </PanelBody>
         </Panel>
@@ -172,7 +153,6 @@ export class PermissionsObserver extends Component<Props, State> {
               onChange={this.onEventChange}
               webhookDisabled={this.props.webhookDisabled}
             />
-            {this.renderValidationErrors(this.props.eventErrors)}
           </PanelBody>
         </Panel>
       </Fragment>
