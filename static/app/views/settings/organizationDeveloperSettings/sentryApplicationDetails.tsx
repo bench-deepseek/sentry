@@ -33,6 +33,7 @@ import {PanelBody} from 'sentry/components/panels/panelBody';
 import {PanelHeader} from 'sentry/components/panels/panelHeader';
 import {PanelTable} from 'sentry/components/panels/panelTable';
 import {TextCopyInput} from 'sentry/components/textCopyInput';
+import {ALLOWED_SCOPES} from 'sentry/constants';
 import {IconAdd} from 'sentry/icons';
 import {t, tct} from 'sentry/locale';
 import type {Avatar} from 'sentry/types/core';
@@ -58,6 +59,7 @@ import {ApiTokenRow} from 'sentry/views/settings/account/apiTokenRow';
 import {displayNewToken} from 'sentry/views/settings/components/newTokenHandler';
 import {BreadcrumbTitle} from 'sentry/views/settings/components/settingsBreadcrumb/breadcrumbTitle';
 import {SettingsPageHeader} from 'sentry/views/settings/components/settingsPageHeader';
+import {EVENT_CHOICES} from 'sentry/views/settings/organizationDeveloperSettings/constants';
 import {PermissionsObserver} from 'sentry/views/settings/organizationDeveloperSettings/permissionsObserver';
 
 const AVATAR_STYLES = {
@@ -115,8 +117,8 @@ const sentryAppFormSchema = z
     allowedOrigins: z.string(),
     organization: z.string(),
     isInternal: z.boolean(),
-    scopes: z.array(z.string()),
-    events: z.array(z.string()),
+    scopes: z.array(z.enum(ALLOWED_SCOPES)),
+    events: z.array(z.enum(EVENT_CHOICES)),
   })
   .superRefine((data, ctx) => {
     if (!data.name.trim()) {
