@@ -1,6 +1,7 @@
 import {Fragment, useEffect, useMemo, useState, type MouseEvent} from 'react';
 import styled from '@emotion/styled';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
+import scrollToElement from 'scroll-to-element';
 import {z} from 'zod';
 
 import {Alert} from '@sentry/scraps/alert';
@@ -378,18 +379,16 @@ export default function SentryApplicationDetails() {
   const handleSubmitSuccess = (data: Partial<SentryApp>) => {
     const type = isInternal ? 'internal' : 'public';
     const baseUrl = `/settings/${organization.slug}/developer-settings/`;
+    const url = app ? `${baseUrl}?type=${type}` : `${baseUrl}${data.slug}/`;
 
     if (app) {
       addSuccessMessage(t('%s successfully saved.', data.name));
       refetch();
-      navigate(normalizeUrl(`${baseUrl}?type=${type}`));
-      return;
+    } else {
+      addSuccessMessage(t('%s successfully created.', data.name));
     }
 
-    addSuccessMessage(t('%s successfully created.', data.name));
-    if (data.slug) {
-      navigate(normalizeUrl(`${baseUrl}${data.slug}/`));
-    }
+    navigate(normalizeUrl(url));
   };
 
   const onAddToken = async (event: MouseEvent<HTMLButtonElement>): Promise<void> => {
@@ -531,9 +530,9 @@ export default function SentryApplicationDetails() {
         events: value.events,
         allowedOrigins: extractMultilineFields(value.allowedOrigins),
         schema: value.schema.trim() === '' ? {} : JSON.parse(value.schema),
-        ...(app || value.author.trim() ? {author: value.author} : {}),
-        ...(app || value.redirectUrl.trim() ? {redirectUrl: value.redirectUrl} : {}),
-        ...(app || value.overview.trim() ? {overview: value.overview} : {}),
+        ...(value.author.trim() ? {author: value.author} : {}),
+        ...(value.redirectUrl.trim() ? {redirectUrl: value.redirectUrl} : {}),
+        ...(value.overview.trim() ? {overview: value.overview} : {}),
       };
 
       return saveSentryAppMutation.mutateAsync(payload).catch(error => {
@@ -559,13 +558,16 @@ export default function SentryApplicationDetails() {
           );
         }
 
-        if (
-          Object.keys(visibleFieldErrors).length === 0 &&
-          nextScopeErrors.length === 0 &&
-          nextEventErrors.length === 0
-        ) {
-          addErrorMessage(topLevelErrorMessage ?? t('Unknown Error'));
-        }
+        addErrorMessage(topLevelErrorMessage ?? t('Unknown Error'));
+
+        requestAnimationFrame(() => {
+          const invalidInput = document.querySelector(
+            `#${CSS.escape(formApi.formId)} [aria-invalid="true"]`
+          );
+          if (invalidInput instanceof HTMLElement) {
+            scrollToElement(invalidInput, {align: 'middle', offset: 0});
+          }
+        });
       });
     },
   });
