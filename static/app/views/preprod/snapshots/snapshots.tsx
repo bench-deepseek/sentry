@@ -501,15 +501,17 @@ export default function SnapshotsPage() {
   );
 
   const snapshotContent = (
-    <Flex
-      direction="row"
-      flex="1"
-      minHeight="0"
-      width="100%"
-      overflow="hidden"
-      style={{maxHeight: 'calc(100vh - 205px)'}}
-    >
-      <Flex flexShrink={0} overflow="auto" style={{width: sidebarWidth}}>
+    <Flex direction="row" flex="1" minHeight="0" width="100%" overflow="hidden">
+      <Flex
+        flexShrink={0}
+        overflow="auto"
+        style={{
+          width: sidebarWidth,
+          height: hasPageFrameFeature
+            ? 'calc(100dvh - var(--top-bar-height, 53px))'
+            : 'calc(100vh - 205px)',
+        }}
+      >
         <SnapshotSidebarContent
           items={filteredItems}
           totalItemCount={filteredItems.length}
