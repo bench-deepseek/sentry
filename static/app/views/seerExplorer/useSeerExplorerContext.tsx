@@ -124,7 +124,7 @@ export function SeerExplorerContextProvider({children}: {children: ReactNode}) {
       ? []
       : [
           {
-            match: ['command+/', 'ctrl+/', 'command+.', 'ctrl+.'],
+            match: ['mod+/', 'mod+.'],
             callback: () => {
               toggleSeerExplorerDrawer();
             },

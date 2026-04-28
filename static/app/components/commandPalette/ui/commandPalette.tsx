@@ -1112,7 +1112,7 @@ function CommandPaletteHints() {
           <Text size="xs" variant="muted">
             {t('Toggle Command Palette')}
           </Text>
-          <Hotkey variant="debossed" value="command+k" />
+          <Hotkey variant="debossed" value="mod+k" />
         </Flex>
       </Flex>
     </Stack>
