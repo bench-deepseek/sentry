@@ -5,7 +5,7 @@ import styled from '@emotion/styled';
 import {Tag} from '@sentry/scraps/badge';
 import {Button} from '@sentry/scraps/button';
 import {CompactSelect} from '@sentry/scraps/compactSelect';
-import {Flex} from '@sentry/scraps/layout';
+import {Flex, Stack} from '@sentry/scraps/layout';
 import {SegmentedControl} from '@sentry/scraps/segmentedControl';
 import {Separator} from '@sentry/scraps/separator';
 import {Text} from '@sentry/scraps/text';
@@ -29,19 +29,16 @@ import {
   TRANSPARENT_COLOR,
 } from './imageDisplay/diffImageDisplay';
 import {SingleImageDisplay} from './imageDisplay/singleImageDisplay';
+import {Card, CardHeader, DarkAware} from './snapshotCards';
 import {
   buildSnapshotLink,
-  Card,
-  CardHeader,
-  DarkAware,
-  GroupContainerRoot,
   GroupHeader,
   isItemUngrouped,
   SnapshotListView,
 } from './snapshotListView';
 
 export type ViewMode = 'single' | 'list';
-export type SortBy = 'diff' | 'alpha';
+type SortBy = 'diff' | 'alpha';
 
 interface SnapshotMainContentProps {
   canNavigateNext: boolean;
@@ -247,10 +244,17 @@ export function SnapshotMainContent({
             <Flex direction="column" flex="1" minWidth="0">
               <DarkAware isDark={isDark}>
                 {groupName ? (
-                  <GroupContainerRoot style={{flex: '1 1 0', minHeight: 0}}>
+                  <Stack
+                    background="primary"
+                    border="primary"
+                    radius="md"
+                    padding="lg"
+                    gap="md"
+                    style={{flex: '1 1 0', minHeight: 0}}
+                  >
                     <GroupHeader name={groupName} />
                     {card}
-                  </GroupContainerRoot>
+                  </Stack>
                 ) : (
                   card
                 )}
