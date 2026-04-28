@@ -199,42 +199,12 @@ function getSchemaFieldValue(schema: SentryApp['schema'] | null | undefined) {
   return formattedSchema === '{}' ? '' : formattedSchema;
 }
 
-function parseSchemaFieldValue(schema: string) {
-  return schema.trim() === '' ? {} : JSON.parse(schema);
-}
-
 function normalizeWebhookEvents(events: WebhookEvent[]) {
   if (events.length === 0) {
     return events;
   }
 
   return events.map(event => event.split('.').shift() as WebhookEvent);
-}
-
-function getFormDefaultValues({
-  isInternalApp,
-  organizationSlug,
-  app,
-}: {
-  isInternalApp: boolean;
-  organizationSlug: string;
-  app?: SentryApp;
-}): SentryApplicationFormData {
-  return {
-    name: app?.name ?? '',
-    author: app?.author ?? '',
-    webhookUrl: app?.webhookUrl ?? '',
-    redirectUrl: app?.redirectUrl ?? '',
-    verifyInstall: isInternalApp ? false : (app?.verifyInstall ?? true),
-    isAlertable: app?.isAlertable ?? false,
-    schema: getSchemaFieldValue(app?.schema),
-    overview: app?.overview ?? '',
-    allowedOrigins: convertMultilineFieldValue(app?.allowedOrigins ?? []),
-    organization: organizationSlug,
-    isInternal: isInternalApp,
-    scopes: app ? [...app.scopes] : [],
-    events: app ? normalizeWebhookEvents(app.events) : [],
-  };
 }
 
 function getErrorMessages(value: unknown): string[] {
@@ -510,12 +480,21 @@ export default function SentryApplicationDetails() {
   const [eventErrors, setEventErrors] = useState<string[]>([]);
 
   const defaultValues = useMemo(
-    () =>
-      getFormDefaultValues({
-        app,
-        isInternalApp: isInternal,
-        organizationSlug: organization.slug,
-      }),
+    () => ({
+      name: app?.name ?? '',
+      author: app?.author ?? '',
+      webhookUrl: app?.webhookUrl ?? '',
+      redirectUrl: app?.redirectUrl ?? '',
+      verifyInstall: isInternal ? false : (app?.verifyInstall ?? true),
+      isAlertable: app?.isAlertable ?? false,
+      schema: getSchemaFieldValue(app?.schema),
+      overview: app?.overview ?? '',
+      allowedOrigins: convertMultilineFieldValue(app?.allowedOrigins ?? []),
+      organization: organization.slug,
+      isInternal,
+      scopes: app ? [...app.scopes] : [],
+      events: app ? normalizeWebhookEvents(app.events) : [],
+    }),
     [app, isInternal, organization.slug]
   );
 
@@ -549,7 +528,7 @@ export default function SentryApplicationDetails() {
         scopes: value.scopes,
         events: value.events,
         allowedOrigins: extractMultilineFields(value.allowedOrigins),
-        schema: parseSchemaFieldValue(value.schema),
+        schema: value.schema.trim() === '' ? {} : JSON.parse(value.schema),
         ...(app || value.author.trim() ? {author: value.author} : {}),
         ...(app || value.redirectUrl.trim() ? {redirectUrl: value.redirectUrl} : {}),
         ...(app || value.overview.trim() ? {overview: value.overview} : {}),
