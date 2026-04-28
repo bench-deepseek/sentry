@@ -13,7 +13,10 @@ import {
   comparePermissionLevels,
   toResourcePermissions,
 } from 'sentry/utils/consolidatedScopes';
-import {PermissionSelection} from 'sentry/views/settings/organizationDeveloperSettings/permissionSelection';
+import {
+  PermissionSelection,
+  permissionStateToList,
+} from 'sentry/views/settings/organizationDeveloperSettings/permissionSelection';
 import {Subscriptions} from 'sentry/views/settings/organizationDeveloperSettings/resourceSubscriptions';
 
 type DefaultProps = {
@@ -25,6 +28,10 @@ type Props = DefaultProps & {
   events: WebhookEvent[];
   newApp: boolean;
   scopes: Scope[];
+  eventErrors?: string[];
+  onEventsChange?: (events: WebhookEvent[]) => void;
+  onScopesChange?: (scopes: Scope[]) => void;
+  scopeErrors?: string[];
 };
 
 type State = {
@@ -71,6 +78,9 @@ export class PermissionsObserver extends Component<Props, State> {
 
   onPermissionChange = (permissions: Permissions, hasContinuousIntegration: boolean) => {
     this.setState({permissions, hasContinuousIntegration});
+    this.props.onScopesChange?.(
+      permissionStateToList(permissions, hasContinuousIntegration)
+    );
     const new_permissions = toResourcePermissions(this.props.scopes);
 
     let elevating = false;
@@ -98,7 +108,24 @@ export class PermissionsObserver extends Component<Props, State> {
 
   onEventChange = (events: WebhookEvent[]) => {
     this.setState({events});
+    this.props.onEventsChange?.(events);
   };
+
+  renderValidationErrors(errors?: string[]) {
+    if (!errors?.length) {
+      return null;
+    }
+
+    return (
+      <Alert.Container>
+        <Alert variant="danger">
+          {errors.map((error, index) => (
+            <div key={`${index}-${error}`}>{error}</div>
+          ))}
+        </Alert>
+      </Alert.Container>
+    );
+  }
 
   renderCallout() {
     const {elevating} = this.state;
@@ -132,6 +159,7 @@ export class PermissionsObserver extends Component<Props, State> {
               onChange={this.onPermissionChange}
               appPublished={this.props.appPublished}
             />
+            {this.renderValidationErrors(this.props.scopeErrors)}
             {this.renderCallout()}
           </PanelBody>
         </Panel>
@@ -144,6 +172,7 @@ export class PermissionsObserver extends Component<Props, State> {
               onChange={this.onEventChange}
               webhookDisabled={this.props.webhookDisabled}
             />
+            {this.renderValidationErrors(this.props.eventErrors)}
           </PanelBody>
         </Panel>
       </Fragment>
