@@ -327,23 +327,20 @@ export default function SentryApplicationDetails() {
     return organization.access.includes('org:write');
   };
 
-  const isInternal = () => {
-    if (app) {
-      return app.status === 'internal';
-    }
-    return location.pathname.endsWith('new-internal/');
-  };
+  const isInternal = app
+    ? app.status === 'internal'
+    : location.pathname.endsWith('new-internal/');
 
   const showAuthInfo = () => !(app?.clientSecret?.[0] === '*');
 
   const headerTitle = () => {
     const action = app ? 'Edit' : 'Create';
-    const type = isInternal() ? 'Internal' : 'Public';
+    const type = isInternal ? 'Internal' : 'Public';
     return tct('[action] [type] Integration', {action, type});
   };
 
   const handleSubmitSuccess = (data: Partial<SentryApp>) => {
-    const type = isInternal() ? 'internal' : 'public';
+    const type = isInternal ? 'internal' : 'public';
     const baseUrl = `/settings/${organization.slug}/developer-settings/`;
 
     if (app) {
@@ -462,7 +459,7 @@ export default function SentryApplicationDetails() {
         model={app}
         onSave={addAvatar}
         title={isColor ? t('Logo') : t('Small Icon')}
-        help={styleProps.help.concat(isInternal() ? '' : t(' Required for publishing.'))}
+        help={styleProps.help.concat(isInternal ? '' : t(' Required for publishing.'))}
         defaultChoice={{
           label: styleProps.label,
           description: styleProps.description,
@@ -478,12 +475,10 @@ export default function SentryApplicationDetails() {
     () =>
       getFormDefaultValues({
         app,
-        isInternalApp: app
-          ? app.status === 'internal'
-          : location.pathname.endsWith('new-internal/'),
+        isInternalApp: isInternal,
         organizationSlug: organization.slug,
       }),
-    [app, location.pathname, organization.slug]
+    [app, isInternal, organization.slug]
   );
 
   const saveSentryAppMutation = useMutation({
@@ -558,7 +553,7 @@ export default function SentryApplicationDetails() {
 
   const webhookUrl = useStore(form.store, state => state.values.webhookUrl);
   const isAlertable = useStore(form.store, state => state.values.isAlertable);
-  const webhookDisabled = isInternal() && !webhookUrl;
+  const webhookDisabled = isInternal && !webhookUrl;
 
   useEffect(() => {
     if (webhookDisabled && isAlertable) {
@@ -585,7 +580,7 @@ export default function SentryApplicationDetails() {
         <form.AppForm form={form}>
           <form.FieldGroup
             title={
-              isInternal()
+              isInternal
                 ? t('Internal Integration Details')
                 : t('Public Integration Details')
             }
@@ -606,7 +601,7 @@ export default function SentryApplicationDetails() {
               )}
             </form.AppField>
 
-            {!isInternal() && (
+            {!isInternal && (
               <form.AppField name="author">
                 {field => (
                   <field.Layout.Row
@@ -638,7 +633,7 @@ export default function SentryApplicationDetails() {
                       ),
                     }
                   )}
-                  required={!isInternal()}
+                  required={!isInternal}
                 >
                   <field.Input
                     value={field.state.value}
@@ -649,7 +644,7 @@ export default function SentryApplicationDetails() {
               )}
             </form.AppField>
 
-            {!isInternal() && (
+            {!isInternal && (
               <form.AppField name="redirectUrl">
                 {field => (
                   <field.Layout.Row
@@ -668,7 +663,7 @@ export default function SentryApplicationDetails() {
               </form.AppField>
             )}
 
-            {!isInternal() && (
+            {!isInternal && (
               <form.AppField name="verifyInstall">
                 {field => (
                   <field.Layout.Row
