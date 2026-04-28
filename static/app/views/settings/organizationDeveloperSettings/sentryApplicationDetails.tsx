@@ -15,12 +15,12 @@ import {Flex} from '@sentry/scraps/layout';
 import {ExternalLink} from '@sentry/scraps/link';
 import {Tooltip} from '@sentry/scraps/tooltip';
 
-import {addErrorMessage, addSuccessMessage} from 'sentry/actionCreators/indicator';
-import {openModal} from 'sentry/actionCreators/modal';
 import {
-  addSentryAppToken,
-  removeSentryAppToken,
-} from 'sentry/actionCreators/sentryAppTokens';
+  addErrorMessage,
+  addLoadingMessage,
+  addSuccessMessage,
+} from 'sentry/actionCreators/indicator';
+import {openModal} from 'sentry/actionCreators/modal';
 import {AvatarChooser} from 'sentry/components/avatarChooser';
 import {Confirm} from 'sentry/components/confirm';
 import {EmptyMessage} from 'sentry/components/emptyMessage';
@@ -47,7 +47,6 @@ import {
 } from 'sentry/utils/queryClient';
 import {RequestError} from 'sentry/utils/requestError/requestError';
 import {normalizeUrl} from 'sentry/utils/url/normalizeUrl';
-import {useApi} from 'sentry/utils/useApi';
 import {useLocation} from 'sentry/utils/useLocation';
 import {useNavigate} from 'sentry/utils/useNavigate';
 import {useOrganization} from 'sentry/utils/useOrganization';
@@ -174,6 +173,10 @@ type SaveSentryAppPayload = {
   redirectUrl?: string;
 };
 
+type RotateSecretResponse = {
+  clientSecret: string;
+};
+
 const makeSentryAppQueryKey = (appSlug: string): ApiQueryKey => {
   return [
     getApiUrl('/sentry-apps/$sentryAppIdOrSlug/', {
@@ -297,7 +300,6 @@ export default function SentryApplicationDetails() {
   const routes = useRoutes();
   const hasPageFrame = useHasPageFrameFeature();
 
-  const api = useApi();
   const queryClient = useQueryClient();
 
   const SENTRY_APP_QUERY_KEY = makeSentryAppQueryKey(appSlug);
@@ -323,9 +325,7 @@ export default function SentryApplicationDetails() {
   const [newTokens, setNewTokens] = useState<NewInternalAppApiToken[]>([]);
 
   const isEditingApp = !!appSlug;
-  const hasTokenAccess = () => {
-    return organization.access.includes('org:write');
-  };
+  const hasTokenAccess = organization.access.includes('org:write');
 
   const isInternal = app
     ? app.status === 'internal'
@@ -333,11 +333,55 @@ export default function SentryApplicationDetails() {
 
   const showAuthInfo = () => !(app?.clientSecret?.[0] === '*');
 
-  const headerTitle = () => {
-    const action = app ? 'Edit' : 'Create';
-    const type = isInternal ? 'Internal' : 'Public';
-    return tct('[action] [type] Integration', {action, type});
-  };
+  const headerTitle = app
+    ? isInternal
+      ? t('Edit Internal Integration')
+      : t('Edit Public Integration')
+    : isInternal
+      ? t('Create Internal Integration')
+      : t('Create Public Integration');
+
+  const addTokenMutation = useMutation({
+    mutationFn: (sentryAppSlug: string) =>
+      fetchMutation<NewInternalAppApiToken>({
+        url: `/sentry-apps/${sentryAppSlug}/api-tokens/`,
+        method: 'POST',
+      }),
+    onMutate: () => {
+      addLoadingMessage();
+    },
+    onSuccess: () => {
+      addSuccessMessage(t('Token successfully added.'));
+    },
+    onError: () => {
+      addErrorMessage(t('Unable to create token'));
+    },
+  });
+
+  const removeTokenMutation = useMutation({
+    mutationFn: ({sentryAppSlug, tokenId}: {sentryAppSlug: string; tokenId: string}) =>
+      fetchMutation({
+        url: `/sentry-apps/${sentryAppSlug}/api-tokens/${tokenId}/`,
+        method: 'DELETE',
+      }),
+    onMutate: () => {
+      addLoadingMessage();
+    },
+    onSuccess: () => {
+      addSuccessMessage(t('Token successfully deleted.'));
+    },
+    onError: () => {
+      addErrorMessage(t('Unable to delete token'));
+    },
+  });
+
+  const rotateClientSecretMutation = useMutation({
+    mutationFn: (sentryAppSlug: string) =>
+      fetchMutation<RotateSecretResponse>({
+        url: `/sentry-apps/${sentryAppSlug}/rotate-secret/`,
+        method: 'POST',
+      }),
+  });
 
   const handleSubmitSuccess = (data: Partial<SentryApp>) => {
     const type = isInternal ? 'internal' : 'public';
@@ -362,7 +406,7 @@ export default function SentryApplicationDetails() {
       return;
     }
 
-    const token = await addSentryAppToken(api, app);
+    const token = await addTokenMutation.mutateAsync(app.slug);
     const updatedNewTokens = newTokens.concat(token);
     setNewTokens(updatedNewTokens);
     displayNewToken(token.token, () => handleFinishNewToken(token));
@@ -381,12 +425,12 @@ export default function SentryApplicationDetails() {
     }
 
     const updatedTokens = tokens.filter(tok => tok.id !== token.id);
-    await removeSentryAppToken(api, app, token.id);
+    await removeTokenMutation.mutateAsync({sentryAppSlug: app.slug, tokenId: token.id});
     setApiQueryData(queryClient, SENTRY_APP_API_TOKENS_QUERY_KEY, updatedTokens);
   };
 
   const renderTokens = () => {
-    if (!hasTokenAccess()) {
+    if (!hasTokenAccess) {
       return (
         <EmptyMessage>{t('You do not have access to view these tokens.')}</EmptyMessage>
       );
@@ -407,12 +451,11 @@ export default function SentryApplicationDetails() {
   };
 
   const rotateClientSecret = async () => {
-    const rotateResponse = await api.requestPromise(
-      `/sentry-apps/${appSlug}/rotate-secret/`,
-      {
-        method: 'POST',
-      }
-    );
+    if (!appSlug) {
+      return;
+    }
+
+    const rotateResponse = await rotateClientSecretMutation.mutateAsync(appSlug);
 
     requestAnimationFrame(() => {
       openModal(({Body, Header}) => (
@@ -569,7 +612,7 @@ export default function SentryApplicationDetails() {
           title={isEditingApp ? (app?.name ?? '') : t('New')}
         />
       ) : (
-        <SettingsPageHeader title={headerTitle()} />
+        <SettingsPageHeader title={headerTitle} />
       )}
 
       {isEditingApp && isPending ? (
@@ -839,7 +882,7 @@ export default function SentryApplicationDetails() {
                     ) : (
                       <ClientSecret>
                         <HiddenSecret>{t('hidden')}</HiddenSecret>
-                        {hasTokenAccess() ? (
+                        {hasTokenAccess ? (
                           <Confirm
                             onConfirm={rotateClientSecret}
                             message={t(
