@@ -877,7 +877,6 @@ export default function SentryApplicationDetails() {
                 <AddTokenHeader key="token-add">
                   <Button
                     size="xs"
-                    type="button"
                     icon={<IconAdd />}
                     onClick={onAddToken}
                     data-test-id="token-add"
@@ -933,9 +932,7 @@ export default function SentryApplicationDetails() {
                             )}
                             errorMessage={t('Error rotating secret')}
                           >
-                            <Button type="button" priority="danger">
-                              {t('Rotate client secret')}
-                            </Button>
+                            <Button priority="danger">{t('Rotate client secret')}</Button>
                           </Confirm>
                         ) : undefined}
                       </ClientSecret>
