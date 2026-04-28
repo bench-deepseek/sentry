@@ -86,7 +86,18 @@ const AVATAR_STYLES = {
   },
 };
 
-const FORM_ERROR_FIELDS = [
+type FormErrorField =
+  | 'name'
+  | 'author'
+  | 'webhookUrl'
+  | 'redirectUrl'
+  | 'verifyInstall'
+  | 'isAlertable'
+  | 'schema'
+  | 'overview'
+  | 'allowedOrigins';
+
+const FORM_ERROR_FIELDS: FormErrorField[] = [
   'name',
   'author',
   'webhookUrl',
@@ -96,7 +107,7 @@ const FORM_ERROR_FIELDS = [
   'schema',
   'overview',
   'allowedOrigins',
-] as const;
+];
 
 const sentryAppFormSchema = z
   .object({
@@ -271,15 +282,16 @@ function getVisibleFieldErrors(responseJSON: unknown) {
 
   const response = responseJSON as Record<string, unknown>;
 
-  return FORM_ERROR_FIELDS.reduce<
-    Partial<Record<(typeof FORM_ERROR_FIELDS)[number], {message: string}>>
-  >((errors, fieldName) => {
-    const [message] = getErrorMessages(response[fieldName]);
-    if (message) {
-      errors[fieldName] = {message};
-    }
-    return errors;
-  }, {});
+  return FORM_ERROR_FIELDS.reduce<Partial<Record<FormErrorField, {message: string}>>>(
+    (errors, fieldName) => {
+      const [message] = getErrorMessages(response[fieldName]);
+      if (message) {
+        errors[fieldName] = {message};
+      }
+      return errors;
+    },
+    {}
+  );
 }
 
 function SentryApplicationForm({
