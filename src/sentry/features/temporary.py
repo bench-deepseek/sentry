@@ -159,9 +159,7 @@ def register_temporary_features(manager: FeatureManager) -> None:
     manager.add("organizations:bitbucket_server-repo-auto-sync-apply", OrganizationFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=False)
     manager.add("organizations:vsts-repo-auto-sync", OrganizationFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=False)
     manager.add("organizations:vsts-repo-auto-sync-apply", OrganizationFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=False)
-    manager.add("organizations:integrations-perforce", OrganizationFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=True)
     manager.add("organizations:integrations-slack-staging", OrganizationFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=True)
-    manager.add("organizations:scm-source-context", OrganizationFeature, FeatureHandlerStrategy.FLAGPOLE, api_expose=True)
     # API-driven integration setup pipeline (per-provider rollout)
     # ...
     # Project Management Integrations Feature Parity Flags
